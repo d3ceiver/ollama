@@ -49,17 +49,25 @@ spec:
           volumeMounts:
             - name: ollama-models
               mountPath: /root/.ollama
-            # ✅ Mount host CA certs so HTTPS works
             - name: host-certs
               mountPath: /etc/ssl/certs
               readOnly: true
+          # 🧰 Install essential tools and start Ollama
+          command: ["/bin/sh"]
+          args:
+            - "-c"
+            - |
+              echo "🔧 Preparing Ollama environment..." && \
+              apt update && \
+              apt install -y curl jq bash vim nano python3 ca-certificates && \
+              update-ca-certificates && \
+              echo "✅ Environment ready. Starting Ollama..." && \
+              /bin/ollama serve
       volumes:
         - name: ollama-models
           persistentVolumeClaim:
             claimName: ollama-data
-        # ✅ Mount host certificates
         - name: host-certs
           hostPath:
             path: /etc/ssl/certs
             type: Directory
-
