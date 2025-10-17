@@ -4,7 +4,7 @@ metadata:
   name: ollama-pv
 spec:
   capacity:
-    storage: 500Gi
+    storage: 300Gi
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
