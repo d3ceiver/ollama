@@ -1,3 +1,28 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ollama-pv
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ollama-local
+  local:
+    path: /mnt/ollama-data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - master
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -6,7 +31,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+  storageClassName: ollama-local
   resources:
     requests:
       storage: 500Gi
-  storageClassName: ollama-local
