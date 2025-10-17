@@ -4,18 +4,24 @@ metadata:
   name: ollama
   namespace: ai
 spec:
+  selector:
+    app: ollama
   ports:
     - name: http
       port: 11434
       targetPort: 11434
+  type: ClusterIP
 ---
 apiVersion: v1
-kind: Endpoints
+kind: Service
 metadata:
-  name: ollama
+  name: ollama-nodeport
   namespace: ai
-subsets:
-  - addresses:
-      - ip: 192.168.0.59   # your Pi’s LAN IP
-    ports:
-      - port: 11434
+spec:
+  selector:
+    app: ollama
+  ports:
+    - port: 11434
+      targetPort: 11434
+      nodePort: 32100
+  type: NodePort
