@@ -15,6 +15,7 @@ spec:
       labels:
         app: ollama
     spec:
+      # 🧠 Node scheduling preference
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -24,9 +25,11 @@ spec:
                     operator: In
                     values:
                       - "true"
+
+      # 🧰 Container configuration
       containers:
         - name: ollama
-          image: ollama/ollama:0.12.6
+          image: yourrepo/ollama-tools:latest   # <-- your custom built image
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 11434
@@ -39,6 +42,10 @@ spec:
               value: '["*"]'
             - name: SSL_CERT_FILE
               value: /etc/ssl/certs/ca-certificates.crt
+            - name: OLLAMA_MODELS
+              value: /root/.ollama/models
+            - name: OLLAMA_KEEP_ALIVE
+              value: "5m"
           resources:
             requests:
               cpu: "2"
@@ -47,27 +54,65 @@ spec:
               cpu: "4"
               memory: "8Gi"
           volumeMounts:
+            # Persistent model storage
             - name: ollama-models
               mountPath: /root/.ollama
+
+            # Host certs for HTTPS
             - name: host-certs
               mountPath: /etc/ssl/certs
               readOnly: true
-          # 🧰 Install essential tools and start Ollama
-          command: ["/bin/sh"]
-          args:
-            - "-c"
-            - |
-              echo "🔧 Preparing Ollama environment..." && \
-              apt update && \
-              apt install -y curl jq bash vim nano python3 ca-certificates && \
-              update-ca-certificates && \
-              echo "✅ Environment ready. Starting Ollama..." && \
-              /bin/ollama serve
+
+            # Writable temp space (avoids read-only errors)
+            - name: temp-storage
+              mountPath: /tmp
+
+      # 📦 Volumes
       volumes:
+        # Persistent NFS PVC
         - name: ollama-models
           persistentVolumeClaim:
             claimName: ollama-data
+
+        # Use host's trusted certs
         - name: host-certs
           hostPath:
             path: /etc/ssl/certs
             type: Directory
+
+        # Writable temp volume
+        - name: temp-storage
+          emptyDir:
+            medium: ""
+
+---
+# 🌐 Internal Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+  namespace: ai
+spec:
+  selector:
+    app: ollama
+  ports:
+    - name: http
+      port: 11434
+      targetPort: 11434
+  type: ClusterIP
+
+---
+# 🌍 External NodePort (for n8n or browser access)
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-nodeport
+  namespace: ai
+spec:
+  selector:
+    app: ollama
+  ports:
+    - port: 11434
+      targetPort: 11434
+      nodePort: 32100
+  type: NodePort
