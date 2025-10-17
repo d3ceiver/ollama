@@ -1,19 +1,4 @@
 apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: ollama-pv
-spec:
-  capacity:
-    storage: 300Gi
-  accessModes:
-    - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: nfs
-  nfs:
-    path: /mnt/ollama-data
-    server: master # or 192.168.0.59
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: ollama-data
@@ -21,7 +6,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: nfs
   resources:
     requests:
       storage: 300Gi
+  storageClassName: nfs
