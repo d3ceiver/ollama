@@ -43,7 +43,6 @@ roleRef:
   kind: ClusterRole
   name: nfs-client-provisioner-runner
   apiGroup: rbac.authorization.k8s.io
-EOF
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -63,7 +62,7 @@ spec:
       serviceAccountName: nfs-client-provisioner
       containers:
         - name: nfs-client-provisioner
-          image: quay.io/external_storage/nfs-client-provisioner:latest
+          image: registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2
           volumeMounts:
             - name: nfs-client-root
               mountPath: /persistentvolumes
@@ -86,5 +85,7 @@ metadata:
   name: nfs
 provisioner: nfs
 reclaimPolicy: Retain
+volumeBindingMode: Immediate
 mountOptions:
   - vers=4.1
+
