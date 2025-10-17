@@ -24,4 +24,4 @@ spec:
   storageClassName: nfs
   resources:
     requests:
-      storage: 500Gi
+      storage: 300Gi
